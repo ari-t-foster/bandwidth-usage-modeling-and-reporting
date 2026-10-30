@@ -1,0 +1,141 @@
+.TH BANDWIDTH-USAGE-REPORT 1 "2026-10-01" "bandwidth-usage-reporter 1.0.0" "User Commands"
+.SH NAME
+bandwidth-usage-report \- generate a bandwidth usage report from vnStat exports
+.SH SYNOPSIS
+.B bandwidth-usage-report
+.RI [ OPTIONS ]
+.SH DESCRIPTION
+.B bandwidth-usage-report
+reads monthly and daily vnStat JSON or CSV exports, writes a normalized
+bandwidth usage JSON file, scores that JSON with the packaged model, and renders
+a one-page PostScript report. The report can also be sent to
+.BR lpr (1)
+when printing is explicitly enabled.
+.PP
+The supported executable is
+.IR /usr/bin/bandwidth-usage-report .
+The
+.I /opt/bandwidth-usage-reporter
+tree is an implementation detail containing the application scripts and
+isolated Python runtime. The wrapper sets up that runtime before executing the
+report script. Do not run the internal script in
+.I /opt
+directly as a normal interface. Calling it with the system Python interpreter
+will not use the packaged NumPy/SciPy runtime and may fail unless dependencies
+are installed separately. Receiver deployments should use
+.BR bandwidth-usage-run-report (8),
+normally via systemd.
+.SH OPTIONS
+.TP
+.BI "--input-dir " DIR
+Read vnStat exports from DIR. The default is
+.IR /var/spool/bandwidth-usage .
+.TP
+.BI "--output-dir " DIR
+Write generated JSON and PostScript output under DIR. The default is the input
+directory.
+.TP
+.BI "--scorer " PATH
+Use PATH as the scoring script. The default is
+.I score_bandwidth_usage.py
+next to the reporter script.
+.TP
+.BI "--date " DATE
+Use an explicit report date. DATE may be
+.I YYYY-MM-DD
+or
+.IR YYMMDD .
+When omitted, the newest daily vnStat row supplies the report date.
+.TP
+.BI "--previous-months " COUNT
+Include COUNT complete prior months before the current month-to-date series.
+The default is 2.
+.TP
+.B --include-zero-days
+Include current-month daily rows whose month-to-date total is zero.
+.TP
+.B --include-zero-months
+Include prior monthly rows whose total is zero.
+.TP
+.BI "--json-out " PATH
+Write the generated and scored JSON document to PATH instead of the default
+output file name.
+.TP
+.BI "--ps-out " PATH
+Write the rendered PostScript report to PATH instead of the default output file
+name.
+.TP
+.B --print
+Submit the rendered PostScript report to
+.BR lpr (1).
+.TP
+.BI "--lpr-option " OPTION
+Pass OPTION to
+.BR lpr (1).
+May be repeated.
+.TP
+.B -h, --help
+Show command help.
+.SH INPUT FILES
+The reporter selects the newest matching monthly and daily file in the input
+directory.
+.PP
+Monthly JSON patterns:
+.IR monthly.vnstat.*.json ,
+.IR monthly.vnstat.json .
+.PP
+Monthly CSV patterns:
+.IR monthly.vnstat.*.csv ,
+.IR monthly.vnstat.csv ,
+.IR vnstat.monthly.csv .
+.PP
+Daily JSON patterns:
+.IR daily.vnstat.*.json ,
+.IR daily.vnstat.json .
+.PP
+Daily CSV patterns:
+.IR daily.vnstat.*.csv ,
+.IR daily.vnstat.csv ,
+.IR vnstat.daily.csv .
+.SH OUTPUT FILES
+Unless overridden, output files are named with the report date:
+.TP
+.I bandwidth_usage.YYMMDD.json
+Normalized and scored report data.
+.TP
+.I bandwidth_usage.YYMMDD.ps
+Rendered one-page PostScript report.
+.SH EXIT STATUS
+.TP
+.B 0
+Success.
+.TP
+.B non-zero
+Argument parsing, input parsing, scoring, rendering, file I/O, or printing
+failed. Python tracebacks are written to standard error for unexpected failures.
+.SH EXAMPLE
+Generate output without printing:
+.PP
+.nf
+bandwidth-usage-report \\
+    --input-dir /var/spool/bandwidth-usage \\
+    --output-dir /var/spool/bandwidth-usage/.cache \\
+    --date 260525
+.fi
+.PP
+Generate a sample report from packaged example data:
+.PP
+.nf
+mkdir -p /tmp/bandwidth-usage-sample
+bandwidth-usage-report \\
+    --input-dir /usr/share/doc/bandwidth-usage-reporter/bw_sample_data/raw \\
+    --output-dir /tmp/bandwidth-usage-sample \\
+    --date 2026-08-31
+.fi
+.SH FILES
+.TP
+.I /usr/share/doc/bandwidth-usage-reporter/bw_sample_data/raw
+Packaged sample vnStat input data.
+.SH SEE ALSO
+.BR bandwidth-usage-run-report (8),
+.BR lpr (1)

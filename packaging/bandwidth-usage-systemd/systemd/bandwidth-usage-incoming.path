@@ -1,0 +1,10 @@
+[Unit]
+Description=Monitor Bandwidth Usage Modeling & Reporting SFTP incoming directory
+
+[Path]
+PathChanged=/var/sftp/bandwidth-usage
+MakeDirectory=yes
+Unit=bandwidth-usage-incoming.service
+
+[Install]
+WantedBy=multi-user.target

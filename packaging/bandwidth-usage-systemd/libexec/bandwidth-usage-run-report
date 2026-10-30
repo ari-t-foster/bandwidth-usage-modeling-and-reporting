@@ -1,0 +1,46 @@
+#!/usr/bin/bash
+set -euo pipefail
+
+config=/etc/sysconfig/bandwidth-usage
+if [[ -r "$config" ]]; then
+    # shellcheck disable=SC1090
+    source "$config"
+fi
+
+spool_dir=${BANDWIDTH_USAGE_SPOOL_DIR:-/var/spool/bandwidth-usage}
+output_dir=${BANDWIDTH_USAGE_OUTPUT_DIR:-/var/spool/bandwidth-usage/.cache}
+report_cmd=${BANDWIDTH_USAGE_REPORT:-/usr/bin/bandwidth-usage-report}
+print_report=${BANDWIDTH_USAGE_PRINT:-1}
+report_date=${BANDWIDTH_USAGE_REPORT_DATE:-}
+lpr_options=${BANDWIDTH_USAGE_LPR_OPTIONS:-}
+
+install -d -o bandwidth-usage -g bandwidth-usage -m 0775 "$output_dir"
+
+args=(
+    --input-dir "$spool_dir"
+    --output-dir "$output_dir"
+)
+
+if [[ -n "$report_date" ]]; then
+    args+=(--date "$report_date")
+fi
+
+case "${print_report,,}" in
+    1|yes|true|on)
+        args+=(--print)
+        if [[ -n "$lpr_options" ]]; then
+            read -r -a parsed_lpr_options <<< "$lpr_options"
+            for option in "${parsed_lpr_options[@]}"; do
+                args+=(--lpr-option "$option")
+            done
+        fi
+        ;;
+    0|no|false|off)
+        ;;
+    *)
+        printf 'invalid BANDWIDTH_USAGE_PRINT value: %s\n' "$print_report" >&2
+        exit 2
+        ;;
+esac
+
+exec "$report_cmd" "${args[@]}"

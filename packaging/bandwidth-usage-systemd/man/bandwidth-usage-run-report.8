@@ -1,0 +1,128 @@
+.TH BANDWIDTH-USAGE-RUN-REPORT 8 "2026-10-01" "bandwidth-usage-systemd 1.0.0" "System Administration"
+.SH NAME
+bandwidth-usage-run-report \- run the packaged bandwidth usage reporter for the receiver service
+.SH SYNOPSIS
+.B bandwidth-usage-run-report
+.SH DESCRIPTION
+.B bandwidth-usage-run-report
+is the receiver-side helper used by
+.BR bandwidth-usage-report.service .
+It reads
+.IR /etc/sysconfig/bandwidth-usage ,
+builds the correct reporter command line, and executes
+.BR bandwidth-usage-report (1).
+.PP
+The helper is installed under
+.IR /usr/libexec/bandwidth-usage .
+Operators normally run it through systemd:
+.PP
+.nf
+systemctl start bandwidth-usage-report.service
+.fi
+.PP
+Do not configure the service to call
+.I /opt/bandwidth-usage-reporter/bw_rpts_report.py
+directly. The
+.I /opt
+tree belongs to the reporter package's isolated runtime. Direct invocation with
+the system Python interpreter bypasses that runtime and can fail unless
+NumPy/SciPy are installed separately. The intended service interface is this
+helper, which invokes the supported
+.I /usr/bin/bandwidth-usage-report
+wrapper.
+.SH CONFIGURATION
+The helper reads these optional shell variables from
+.IR /etc/sysconfig/bandwidth-usage :
+.TP
+.B BANDWIDTH_USAGE_SPOOL_DIR
+Input directory containing monthly and daily vnStat exports. Default:
+.IR /var/spool/bandwidth-usage .
+.TP
+.B BANDWIDTH_USAGE_OUTPUT_DIR
+Directory for generated JSON and PostScript output. Default:
+.IR /var/spool/bandwidth-usage/.cache .
+.TP
+.B BANDWIDTH_USAGE_REPORT
+Reporter executable. Default:
+.IR /usr/bin/bandwidth-usage-report .
+.TP
+.B BANDWIDTH_USAGE_PRINT
+Whether to print the report. Accepted true values are
+.IR 1 ,
+.IR yes ,
+.IR true ,
+and
+.IR on .
+Accepted false values are
+.IR 0 ,
+.IR no ,
+.IR false ,
+and
+.IR off .
+The default is
+.IR 1 .
+.TP
+.B BANDWIDTH_USAGE_LPR_OPTIONS
+Whitespace-separated options passed to
+.BR lpr (1)
+when printing is enabled. Default:
+.IR "-o fit-to-page=true" .
+.TP
+.B BANDWIDTH_USAGE_REPORT_DATE
+Explicit report date in
+.I YYYY-MM-DD
+or
+.I YYMMDD
+format. When empty, the reporter infers the date from the newest daily vnStat
+row.
+.SH INPUTS
+Input files are read from
+.B BANDWIDTH_USAGE_SPOOL_DIR .
+The underlying reporter expects one monthly and one daily vnStat JSON or CSV
+export. See
+.BR bandwidth-usage-report (1)
+for accepted file names.
+.SH OUTPUTS
+Generated report files are written to
+.B BANDWIDTH_USAGE_OUTPUT_DIR .
+The default files are:
+.TP
+.I bandwidth_usage.YYMMDD.json
+Normalized and scored report data.
+.TP
+.I bandwidth_usage.YYMMDD.ps
+Rendered PostScript report.
+.PP
+When printing is enabled, the PostScript file is submitted to
+.BR lpr (1).
+.SH EXIT STATUS
+.TP
+.B 0
+Report generation succeeded.
+.TP
+.B 2
+.B BANDWIDTH_USAGE_PRINT
+had an invalid value.
+.TP
+.B non-zero
+Directory creation, reporter execution, input parsing, scoring, rendering, or
+printing failed. The service journal records standard output and standard error.
+.SH FILES
+.TP
+.I /etc/sysconfig/bandwidth-usage
+Receiver configuration.
+.TP
+.I /usr/lib/systemd/system/bandwidth-usage-report.service
+Oneshot service that invokes this helper as
+.IR bandwidth-usage:bandwidth-usage .
+.TP
+.I /var/spool/bandwidth-usage
+Default input spool.
+.TP
+.I /var/spool/bandwidth-usage/.cache
+Default output directory.
+.SH SEE ALSO
+.BR bandwidth-usage-report (1),
+.BR systemd.path (5),
+.BR systemd.service (5),
+.BR lpr (1)

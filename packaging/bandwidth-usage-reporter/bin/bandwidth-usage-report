@@ -1,0 +1,15 @@
+#!/bin/sh
+venv=/opt/bandwidth-usage-reporter/venv
+
+unset PYTHONPATH
+export PYTHONHOME="$venv"
+export PYTHONNOUSERSITE=1
+export VIRTUAL_ENV="$venv"
+if [ -n "${LD_LIBRARY_PATH:-}" ]; then
+    export LD_LIBRARY_PATH="$venv/lib64:$LD_LIBRARY_PATH"
+else
+    export LD_LIBRARY_PATH="$venv/lib64"
+fi
+
+exec "$venv/bin/python3" \
+    /opt/bandwidth-usage-reporter/bw_rpts_report.py "$@"

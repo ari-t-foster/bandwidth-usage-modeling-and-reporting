@@ -1,0 +1,8 @@
+[Unit]
+Description=Move uploaded bandwidth usage files to the report spool
+Wants=bandwidth-usage-report.service
+Before=bandwidth-usage-report.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/bandwidth-usage/bandwidth-usage-move-incoming

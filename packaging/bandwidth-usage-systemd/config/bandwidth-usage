@@ -1,0 +1,14 @@
+# Receiver configuration for Bandwidth Usage Modeling & Reporting.
+
+BANDWIDTH_USAGE_INCOMING_DIR=/var/sftp/bandwidth-usage
+BANDWIDTH_USAGE_SPOOL_DIR=/var/spool/bandwidth-usage
+BANDWIDTH_USAGE_OUTPUT_DIR=/var/spool/bandwidth-usage/.cache
+BANDWIDTH_USAGE_REPORT=/usr/bin/bandwidth-usage-report
+
+# Keep enabled to match the original receiver behavior. Set to 0 to generate
+# reports without submitting them to lpr.
+BANDWIDTH_USAGE_PRINT=1
+BANDWIDTH_USAGE_LPR_OPTIONS="-o fit-to-page=true"
+
+# Empty means the reporter infers the date from the newest daily vnStat row.
+BANDWIDTH_USAGE_REPORT_DATE=

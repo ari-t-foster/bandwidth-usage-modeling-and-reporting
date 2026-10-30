@@ -1,0 +1,14 @@
+/build/
+#/dist/
+
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+#*.rpm
+*.src.rpm
+
+.venv/
+venv/
+
+.ipynb_checkpoints/

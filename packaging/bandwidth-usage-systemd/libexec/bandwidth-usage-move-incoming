@@ -1,0 +1,32 @@
+#!/usr/bin/bash
+set -euo pipefail
+
+config=/etc/sysconfig/bandwidth-usage
+if [[ -r "$config" ]]; then
+    # shellcheck disable=SC1090
+    source "$config"
+fi
+
+incoming_dir=${BANDWIDTH_USAGE_INCOMING_DIR:-/var/sftp/bandwidth-usage}
+spool_dir=${BANDWIDTH_USAGE_SPOOL_DIR:-/var/spool/bandwidth-usage}
+
+install -d -o bandwidth-usage -g bandwidth-usage -m 0775 "$spool_dir"
+
+shopt -s nullglob
+files=("$incoming_dir"/*)
+if (( ${#files[@]} == 0 )); then
+    exit 0
+fi
+
+for src in "${files[@]}"; do
+    if [[ ! -f "$src" ]]; then
+        printf 'unexpected non-file in incoming directory: %s\n' "$src" >&2
+        exit 1
+    fi
+
+    name=${src##*/}
+    dst=$spool_dir/$name
+    mv -- "$src" "$dst"
+    chown bandwidth-usage:bandwidth-usage "$dst"
+    chmod 0660 "$dst"
+done
