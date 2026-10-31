@@ -6,7 +6,9 @@ This repository contains a bandwidth-capacity modeling analysis and a companion 
 
 The repository includes the Jupyter analysis and source workbook, reporting scripts, Fedora RPM packaging, pfSense sender and systemd receiver integration, and sample inputs and outputs. It is not necessary to configure pfSense, SFTP, or systemd to inspect the sample data or run the reporter manually.
 
-The methodology, model comparisons, findings, and limitations are covered in the [project case study](https://github.com/ari-t-foster/projects/bandwidth-usage-modeling-and-reporting).
+## Project Case Study
+
+The methodology, model comparisons, findings, and limitations are covered in the [project case study](https://scienceopera.net/projects/bandwidth-usage-modeling-and-reporting).
 
 ## Licensing and data
 
